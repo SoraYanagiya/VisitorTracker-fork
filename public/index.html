@@ -16,10 +16,28 @@
     </header>
 
     <main class="layout">
-        <section class="pane form-pane" id="levels"></section>
+        <section class="pane form-pane" id="formPane">
+            <div class="levels" id="levels"></div>
+
+            <aside class="stats" id="stats" aria-labelledby="statsTitle">
+                <div class="stats-head">
+                    <span class="stats-title" id="statsTitle">今日の来場者 <small>Today's visitors</small></span>
+                    <span class="stats-total"><b id="statsTotal">0</b>人</span>
+                </div>
+                <div class="stats-body">
+                    <div class="mini-map" id="miniMap"></div>
+                    <div class="stats-side">
+                        <div class="stats-sub">どこから来た？ 上位</div>
+                        <ol class="rank" id="rank"></ol>
+                        <div class="legend" id="legend" aria-hidden="true"></div>
+                    </div>
+                </div>
+                <div class="tip" id="tip" role="status" hidden></div>
+            </aside>
+        </section>
 
         <section class="pane loc-pane" id="locPane">
-            <div class="level-title"><span class="num" id="locNum"></span><span id="locLabel">学校のある都道府県</span></div>
+            <div class="level-title"><span class="num" id="locNum"></span><span id="locLabel">どこから来ましたか？</span></div>
             <div class="map-area" id="japanLoc">
                 <div class="map-wrap" id="mapBox"><p class="hint">地図を読み込み中…</p></div>
                 <div class="map-foot">
@@ -31,7 +49,7 @@
             </div>
             <div id="overseasLoc" hidden>
                 <input type="text" id="country" autocomplete="off" placeholder="e.g. Korea, Thailand, France">
-                <p class="hint">学校がある国を英語で入力してください</p>
+                <p class="hint">国名を英語で入力してください</p>
             </div>
         </section>
     </main>
@@ -39,20 +57,33 @@
     <footer class="submit-bar">
         <div class="summary" id="summary" aria-live="polite"></div>
         <label class="comment">
-            <span id="commentLabel">学校名など（任意）</span>
+            <span id="commentLabel">学校名・所属など（任意）</span>
             <input type="text" id="comment" autocomplete="off">
         </label>
         <button type="button" class="primary" id="submit" disabled>送信する</button>
     </footer>
 
+    <div class="overlay" id="confirm" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" hidden>
+        <div class="thanks-card confirm-card">
+            <div class="thanks-title" id="confirmTitle">この内容で送信しますか？</div>
+            <dl class="confirm-list" id="confirmList"></dl>
+            <div class="confirm-actions">
+                <button type="button" class="secondary" id="confirmBack">選び直す</button>
+                <button type="button" class="primary" id="confirmOk">送信する</button>
+            </div>
+        </div>
+    </div>
+
     <div class="overlay" id="thanks" hidden>
         <div class="thanks-card">
             <div class="done-mark" aria-hidden="true">✓</div>
             <div class="thanks-title" id="thanksTitle">ありがとうございました！</div>
+            <div class="thanks-what" id="thanksWhat"></div>
             <div class="hint" id="thanksSub">ごゆっくりご覧ください</div>
         </div>
     </div>
 
     <script src="js/map.js"></script>
+    <script src="js/stats.js"></script>
 </body>
 </html>

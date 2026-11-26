@@ -185,6 +185,62 @@ input[type="text"]:focus, select:focus { outline: none; border-color: var(--acce
     #overseasLoc { margin-top: 40px; padding: 0 10px; }
 }
 
+/* ---------- 今日の来場者(左下) ---------- */
+.levels { display: flex; flex-direction: column; gap: 12px; }
+.stats {
+    --seq-0: #e9ece8;   /* 0人 */
+    --seq-1: #86b6ef;
+    --seq-2: #5598e7;
+    --seq-3: #2a78d6;
+    --seq-4: #1c5cab;
+    --seq-5: #104281;
+    position: relative;
+    margin-top: auto;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.stats-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.stats-title { font-size: 14px; font-weight: 700; color: var(--muted); }
+.stats-title small { font-weight: 400; font-size: 12px; }
+.stats-total { color: var(--muted); font-size: 15px; }
+.stats-total b { font-size: 34px; font-weight: 800; color: var(--ink); margin-right: 2px; }
+.stats-body { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(0, 1fr); gap: 14px; align-items: center; }
+.mini-map svg { width: 100%; height: auto; max-height: 260px; display: block; }
+.mini-map .prefecture,
+.mini-map .prefecture * { fill: var(--seq-0); stroke: #ffffff; stroke-width: .6; transition: opacity .15s; }
+.mini-map .prefecture { cursor: pointer; }
+.mini-map .prefecture:hover { opacity: .75; }
+.mini-map svg > g line, .mini-map svg > g polyline { stroke: var(--line); }
+.stats-sub { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+
+.rank { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 4.5em minmax(0, 1fr) 2.2em; gap: 8px; align-items: center; font-size: 14px; }
+.rank .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.rank .track { display: block; height: 10px; background: #e3edf9; border-radius: 4px; }
+.rank .fill { display: block; height: 100%; background: var(--seq-3); border-radius: 4px; min-width: 4px; }
+.rank .count { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.rank .empty { display: block; color: var(--muted); font-size: 14px; line-height: 1.5; }
+
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.legend .sw { display: inline-flex; gap: 2px; }
+.legend .sw i { width: 16px; height: 10px; border-radius: 2px; display: block; }
+
+.tip {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    background: var(--ink);
+    color: #fff;
+    font-size: 14px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+    transform: translate(-50%, calc(-100% - 10px));
+}
+
 /* ---------- 送信バー ---------- */
 .submit-bar {
     position: sticky;
@@ -245,6 +301,19 @@ input[type="text"]:focus, select:focus { outline: none; border-color: var(--acce
 }
 @keyframes pop { from { transform: scale(.5); opacity: 0; } to { transform: none; opacity: 1; } }
 .thanks-title { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+.confirm-card { width: min(520px, 100%); text-align: left; padding: 32px; }
+.confirm-card .thanks-title { text-align: center; margin-bottom: 18px; white-space: pre-line; line-height: 1.3; }
+.confirm-list { margin: 0 0 24px; display: grid; grid-template-columns: auto 1fr; gap: 10px 20px; align-items: baseline; }
+.confirm-list dt { color: var(--muted); font-size: 15px; }
+.confirm-list dd { margin: 0; font-size: 24px; font-weight: 800; overflow-wrap: anywhere; }
+.confirm-actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 12px; }
+.confirm-actions .primary { min-width: 0; }
+.secondary {
+    padding: 16px 20px; border: 2px solid var(--line); border-radius: 999px;
+    background: var(--card); font-size: 18px; font-weight: 700; cursor: pointer;
+}
+.secondary:hover { border-color: var(--muted); }
+.thanks-what { font-size: 18px; font-weight: 700; color: var(--accent-strong); margin-bottom: 6px; }
 
 /* ---------- 縦長・狭い画面 ---------- */
 @media (max-width: 820px), (orientation: portrait) and (max-width: 1200px) {
@@ -252,6 +321,7 @@ input[type="text"]:focus, select:focus { outline: none; border-color: var(--acce
     .layout { grid-template-columns: 1fr; }
     .pane { overflow: visible; }
     .map-wrap { flex: none; aspect-ratio: 1 / 1; }
+    .stats { margin-top: 12px; }
     .map-foot { align-items: stretch; }
     .picked { text-align: center; }
     .map-foot select { width: 100%; }

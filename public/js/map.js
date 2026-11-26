@@ -54,16 +54,18 @@ const OVERSEAS_TREE = [
 const TEXT = {
     japan: {
         title: '来場者アンケート', school: '学校', belong: '所属', grade: '学年',
-        loc: '学校のある都道府県', comment: '学校名など（任意）', commentPh: '空欄でもOK',
+        loc: 'どこから来ましたか？', comment: '学校名・所属など（任意）', commentPh: '空欄でもOK',
         pre: 'プログラム配属前', preNote: '1・2年生',
+        confirm: 'この内容で送信しますか？', back: '選び直す', where: 'どこから', commentShort: '学校名・所属',
         need: { school: '学校を選んでください', grade: '学年を選んでください', belong: '所属を選んでください', loc: '都道府県を選んでください' },
         submit: '送信する', sending: '送信中…', fail: '保存できませんでした。もう一度お試しください',
         thanks: 'ありがとうございました！', thanksSub: 'ごゆっくりご覧ください',
     },
     overseas: {
         title: 'Visitor Survey', school: 'School', belong: 'Department', grade: 'Grade',
-        loc: 'Country of your school / 学校のある国', comment: 'School name, etc. (optional)', commentPh: 'Optional',
+        loc: 'Where are you from? / どこから来ましたか？', comment: 'School or affiliation (optional)', commentPh: 'Optional',
         pre: 'Before program', preNote: '',
+        confirm: 'Submit this?\nこの内容で送信しますか？', back: 'Back / 選び直す', where: 'From', commentShort: 'School',
         need: { school: 'Choose your school', grade: 'Choose your grade', belong: 'Choose your department', loc: 'Enter your country' },
         submit: 'Submit / 送信する', sending: 'Sending…', fail: 'Could not save. Please try again.',
         thanks: 'Thank you!', thanksSub: 'Enjoy the lab tour. / ごゆっくりご覧ください',
@@ -131,6 +133,8 @@ function optionsOf(node) {
 }
 
 const classification = () => (grade ? grade.prefix + grade.value : '');
+// 画面に出す学年(海外の方には英語で表示。保存する値は classification())
+const gradeText = () => (mode === 'overseas' ? `${path[0].label} · ${grade.label}` : (classification() || 'その他'));
 
 // ---------- 左側: 学校・所属・学年 ----------
 function renderLevels(appearFrom = Infinity) {
@@ -190,8 +194,6 @@ function pickGrade(prefix, gr) {
 function setLocation(name) {
     place = name || '';
     prefSelect.value = mode === 'japan' ? place : '';
-    pickedEl.textContent = place && mode === 'japan' ? place : '地図をタップしてください';
-    pickedEl.classList.toggle('empty', !place);
     if (svgRoot) {
         svgRoot.querySelectorAll('.prefecture').forEach((p) =>
             p.classList.toggle('selected', p.dataset.name === place));
@@ -224,7 +226,12 @@ async function loadMap() {
             const t = p.querySelector('title');
             const name = t ? t.textContent.split(' / ')[0].trim() : '';
             p.dataset.name = name;
-            p.addEventListener('click', () => setLocation(name));
+            // 地図をタップしたら、左側が答え終わっていればそのまま送信する
+            p.addEventListener('click', () => {
+                if (sending) return;
+                setLocation(name);
+                if (!missingKey()) openConfirm();
+            });
         });
 
         box.replaceChildren(svgRoot);
@@ -278,18 +285,47 @@ function update() {
     $('locNum').textContent = place ? '✓' : String(rows.length + 1);
     locPane.classList.toggle('done', !!place);
 
+    pickedEl.textContent = place || '地図をタップしてください';
+    pickedEl.classList.toggle('empty', !place);
+
     if (!sending) {
         submitBtn.disabled = !!need;
         submitBtn.textContent = need ? t.need[need] : t.submit;
         submitBtn.classList.toggle('ready', !need);
     }
     const parts = [];
-    if (grade) parts.push(el('span', {}, `${t.grade}: `, el('b', {}, classification() || 'その他')));
+    if (grade) parts.push(el('span', {}, `${t.grade}: `, el('b', {}, gradeText())));
     if (place) parts.push(el('span', {}, `${mode === 'japan' ? '所在地' : 'Country'}: `, el('b', {}, place)));
     summaryEl.replaceChildren(...parts);
 }
 
-submitBtn.addEventListener('click', async () => {
+submitBtn.addEventListener('click', () => openConfirm());
+
+// ---------- 送信前の確認 ----------
+const confirmEl = $('confirm');
+
+function openConfirm() {
+    if (missingKey() || sending) return;
+    const t = TEXT[mode];
+    $('confirmTitle').textContent = t.confirm;
+    $('confirmBack').textContent = t.back;
+    $('confirmOk').textContent = t.submit;
+    const items = [[t.grade, gradeText()], [t.where, place]];
+    const comment = commentEl.value.trim();
+    if (comment) items.push([t.commentShort, comment]);
+    $('confirmList').replaceChildren(...items.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]));
+    confirmEl.hidden = false;
+    $('confirmOk').focus();
+}
+
+function closeConfirm() { confirmEl.hidden = true; }
+
+$('confirmBack').addEventListener('click', closeConfirm);
+$('confirmOk').addEventListener('click', () => { closeConfirm(); submit(); });
+confirmEl.addEventListener('click', (e) => { if (e.target === confirmEl) closeConfirm(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !confirmEl.hidden) closeConfirm(); });
+
+async function submit() {
     if (missingKey() || sending) return;
     const t = TEXT[mode];
     sending = true;
@@ -310,13 +346,14 @@ submitBtn.addEventListener('click', async () => {
         update();
         summaryEl.replaceChildren(el('span', { style: 'color:#b3261e' }, t.fail));
     }
-});
+}
 
 function showThanks() {
     const t = TEXT[mode];
     const overlay = $('thanks');
     $('thanksTitle').textContent = t.thanks;
     $('thanksSub').textContent = t.thanksSub;
+    $('thanksWhat').textContent = `${place}・${gradeText()}`;
     overlay.hidden = false;
     const close = () => { clearTimeout(timer); overlay.hidden = true; overlay.onclick = null; resetForm('japan'); };
     const timer = setTimeout(close, THANKS_MS);
@@ -341,7 +378,7 @@ function resetForm(newMode = mode) {
     $('japanLoc').hidden = mode !== 'japan';
     $('overseasLoc').hidden = mode !== 'overseas';
     document.documentElement.lang = mode === 'japan' ? 'ja' : 'en';
-    levelsEl.scrollTop = 0;
+    $('formPane').scrollTop = 0;
     renderLevels();
     setLocation('');
 }
